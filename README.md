@@ -82,32 +82,36 @@ The theme defaults to `true` to display icons out of the box. You can manually c
 export MODERN_DARK_PRO_NERD_FONTS=true
 ```
 
-| Indicator | Nerd Fonts Icon (if enabled) | Standard Unicode (Default) |
+> [!NOTE]
+> Nerd Font glyphs may render as empty boxes or broken characters in your web browser if you do not have a Nerd Font installed and configured in your browser. Refer to the [Visual Symbols Legend](#🖼️-visual-symbols-legend) image below to see exactly how they look in a terminal.
+
+| Indicator | Nerd Fonts Symbol Name | Standard Unicode (Default) |
 | :--- | :--- | :--- |
-| **Directory** | `` | `📁` |
-| **Git Branch** | `` | `⌥` |
-| **Command Timer / Clock** | `` | `🕒` |
-| **Modified / Dirty** | `` | `✗` |
-| **Staged** | `` | `●` |
-| **Untracked** | `` | `?` |
-| **Stashed** | `` | `⚑` |
-| **Ahead** | `` | `⇡` |
-| **Behind** | `` | `⇣` |
-| **Python environment** | `` | `py` |
-| **Node.js version** | `` | `node` |
-| **Golang version** | `` | `go` |
-| **Rust version** | `` | `rust` |
-| **Terraform workspace** | `󱁢` | `tf` |
-| **Kubernetes Context** | `☸` | `k8s` |
-| **AWS Profile** | `` | `aws` |
-| **Read-Only Lock** | `` | `🔒` |
-| **SSH Host** | `` | `ssh` |
-| **Background Jobs** | `` | `⚙` |
+| **Directory** | Folder Outline (``) | `📁` |
+| **Git Branch** | Git Branch (``) | `⌥` |
+| **Command Timer / Clock** | Clock (``) | `🕒` |
+| **Modified / Dirty** | Solid Times Circle (``) | `✗` |
+| **Staged** | Solid Check Circle (``) | `●` |
+| **Untracked** | Solid Question Circle (``) | `?` |
+| **Stashed** | Archive Box (``) | `⚑` |
+| **Ahead** | Up Arrow (``) | `⇡` |
+| **Behind** | Down Arrow (``) | `⇣` |
+| **Python environment** | Python Logo (``) | `py` |
+| **Node.js version** | Node.js Logo (``) | `node` |
+| **Golang version** | Go Logo (``) | `go` |
+| **Rust version** | Rust Logo (``) | `rust` |
+| **Terraform workspace** | Terraform Logo (`󱁢`) | `tf` |
+| **Kubernetes Context** | Kubernetes Logo (`☸`) | `k8s` |
+| **AWS Profile** | AWS Logo (``) | `aws` |
+| **Read-Only Lock** | Lock (``) | `🔒` |
+| **SSH Host** | Server (``) | `ssh` |
+| **Background Jobs** | Gear (``) | `⚙` |
 
 ### 🖼️ Visual Symbols Legend
-If you don't have a Nerd Font installed locally on your browser or editor, here is how the icons look:
+If you don't have a Nerd Font installed locally on your browser or editor, here is how the icons look in your terminal:
 
 ![Modern Dark Pro Symbols Legend](symbols.png)
+
 
 ### 3. Container Style (`MODERN_DARK_PRO_PILL_STYLE`)
 Choose how your capsule segments are wrapped:

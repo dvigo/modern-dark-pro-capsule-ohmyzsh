@@ -444,17 +444,19 @@ function _modern_dark_pro_path() {
 
 # Runtimes caching variables to keep prompt blazingly fast
 _MODERN_DARK_PRO_LAST_PWD=""
+_MODERN_DARK_PRO_LAST_PATH=""
 _MODERN_DARK_PRO_CACHED_NODE=""
 _MODERN_DARK_PRO_CACHED_GO=""
 _MODERN_DARK_PRO_CACHED_RUST=""
 _MODERN_DARK_PRO_CACHED_TF=""
 
-# Updates runtimes versions only if PWD has changed (highly optimized)
+# Updates runtimes versions only if PWD or PATH has changed (highly optimized)
 function _modern_dark_pro_update_runtimes() {
-  if [[ "${PWD}" == "${_MODERN_DARK_PRO_LAST_PWD}" ]]; then
+  if [[ "${PWD}" == "${_MODERN_DARK_PRO_LAST_PWD}" && "${PATH}" == "${_MODERN_DARK_PRO_LAST_PATH}" ]]; then
     return
   fi
   _MODERN_DARK_PRO_LAST_PWD="${PWD}"
+  _MODERN_DARK_PRO_LAST_PATH="${PATH}"
 
   # 1. Node.js
   _MODERN_DARK_PRO_CACHED_NODE=""

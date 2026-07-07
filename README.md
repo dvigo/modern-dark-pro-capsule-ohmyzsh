@@ -185,6 +185,20 @@ export MODERN_DARK_PRO_PATH_STYLE="limit"
 export MODERN_DARK_PRO_PATH_DEPTH=3
 ```
 
+### 10. Clickable Prompt Elements (OSC 8 Hyperlinks)
+You can make prompt elements clickable (using `Cmd+Click` on macOS or `Ctrl+Click` on Windows/Linux):
+- **Directory Path**: Opens the current directory in your default file manager (e.g., Finder or File Explorer).
+- **Git Branch**: Opens the current branch page on the remote repository (e.g., GitHub, GitLab, or Bitbucket) in your default web browser.
+
+Both features are automatically disabled in SSH sessions to prevent errors.
+```bash
+# Toggle making the directory path clickable (default: true)
+export MODERN_DARK_PRO_CLICKABLE_PATH=true
+
+# Toggle making the Git branch clickable (default: true)
+export MODERN_DARK_PRO_CLICKABLE_GIT=true
+```
+
 ---
 
 ## 🎨 Color Palettes

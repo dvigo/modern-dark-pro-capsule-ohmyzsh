@@ -63,6 +63,9 @@ MODERN_DARK_PRO_PILL_COLOR_STYLE="${MODERN_DARK_PRO_PILL_COLOR_STYLE:-solid}" # 
 MODERN_DARK_PRO_PROMPT_LAYOUT="${MODERN_DARK_PRO_PROMPT_LAYOUT:-two-line}" # single, two-line, or classic
 MODERN_DARK_PRO_SHOW_CLOCK="${MODERN_DARK_PRO_SHOW_CLOCK:-true}"
 MODERN_DARK_PRO_BORDER_COLOR="${MODERN_DARK_PRO_BORDER_COLOR:-${COLOR_CONNECTOR}}"
+MODERN_DARK_PRO_CLICKABLE_PATH="${MODERN_DARK_PRO_CLICKABLE_PATH:-true}"
+MODERN_DARK_PRO_CLICKABLE_GIT="${MODERN_DARK_PRO_CLICKABLE_GIT:-true}"
+
 
 # Enable terminal colors for BSD ls (macOS) and GNU ls (Linux)
 export CLICOLOR=1
@@ -202,6 +205,28 @@ function _modern_dark_pro_update_git() {
     return
   fi
 
+  # Cache remote URL for speed
+  if [[ "${PWD}" != "${_MODERN_DARK_PRO_LAST_GIT_PWD}" ]]; then
+    _MODERN_DARK_PRO_LAST_GIT_PWD="${PWD}"
+    _MODERN_DARK_PRO_CACHED_GIT_REMOTE=""
+    local remote_url
+    remote_url=$(git config --get remote.origin.url 2>/dev/null)
+    if [[ -z "${remote_url}" ]]; then
+      remote_url=$(git remote -v 2>/dev/null | head -n 1 | awk '{print $2}')
+    fi
+    if [[ -n "${remote_url}" ]]; then
+      # Convert remote URL to web URL
+      remote_url="${remote_url%.git}"
+      if [[ "${remote_url}" =~ "^(git@|ssh://git@)([^:/]+)[:/](.+)$" ]]; then
+        local host="${match[2]}"
+        local repo_path="${match[3]}"
+        remote_url="https://${host}/${repo_path}"
+      fi
+      _MODERN_DARK_PRO_CACHED_GIT_REMOTE="${remote_url}"
+    fi
+  fi
+
+
   # Get branch info
   local branch_line
   branch_line=$(git status --porcelain -b 2>/dev/null | head -n 1)
@@ -265,7 +290,12 @@ function _modern_dark_pro_path_capsule() {
     lock=" %F{${COLOR_ERROR}}${MODERN_DARK_PRO_LOCK_SYMBOL}%f"
   fi
   
-  _modern_dark_pro_make_pill "${COLOR_PATH}" "${MODERN_DARK_PRO_DIR_SYMBOL}" "${path_val}${lock}"
+  local path_block="${path_val}${lock}"
+  if [[ -n "${_MODERN_DARK_PRO_PATH_URL}" ]]; then
+    path_block="%{\e]8;;${_MODERN_DARK_PRO_PATH_URL}\e\\%}${path_block}%{\e]8;;\e\\%}"
+  fi
+
+  _modern_dark_pro_make_pill "${COLOR_PATH}" "${MODERN_DARK_PRO_DIR_SYMBOL}" "${path_block}"
 }
 
 function _modern_dark_pro_git_branch_capsule() {
@@ -285,6 +315,23 @@ function _modern_dark_pro_git_branch_capsule() {
   fi
   
   local content="${branch_info}${ahead_str}${behind_str}"
+  
+  local git_url=""
+  if [[ "${MODERN_DARK_PRO_CLICKABLE_GIT}" == "true" && -n "${_MODERN_DARK_PRO_CACHED_GIT_REMOTE}" && -z "${SSH_CONNECTION}" && -z "${SSH_CLIENT}" && -z "${SSH_TTY}" ]]; then
+    local REPLY
+    _modern_dark_pro_urlencode "${branch_info}"
+    local escaped_ref="${REPLY//\%/%%}"
+    if [[ "${_MODERN_DARK_PRO_CACHED_GIT_REMOTE}" == *"bitbucket"* ]]; then
+      git_url="${_MODERN_DARK_PRO_CACHED_GIT_REMOTE}/src/${escaped_ref}"
+    else
+      git_url="${_MODERN_DARK_PRO_CACHED_GIT_REMOTE}/tree/${escaped_ref}"
+    fi
+  fi
+
+  if [[ -n "${git_url}" ]]; then
+    content="%{\e]8;;${git_url}\e\\%}${content}%{\e]8;;\e\\%}"
+  fi
+
   _modern_dark_pro_make_pill "${COLOR_GIT_BRANCH}" "${MODERN_DARK_PRO_GIT_SYMBOL}" "${content}"
 }
 
@@ -442,6 +489,15 @@ function _modern_dark_pro_path() {
   fi
 }
 
+# URL encodes a string using pure Zsh parameter expansion (blazingly fast)
+# Assigns the result to the REPLY variable to avoid command substitution overhead
+function _modern_dark_pro_urlencode() {
+  setopt localoptions extendedglob
+  local input="${1}"
+  REPLY="${input//(#b)([^a-zA-Z0-9._\-\/])/%${(l:2::0:)$(([##16]#match))}}"
+}
+
+
 # Runtimes caching variables to keep prompt blazingly fast
 _MODERN_DARK_PRO_LAST_PWD=""
 _MODERN_DARK_PRO_LAST_PATH=""
@@ -449,6 +505,10 @@ _MODERN_DARK_PRO_CACHED_NODE=""
 _MODERN_DARK_PRO_CACHED_GO=""
 _MODERN_DARK_PRO_CACHED_RUST=""
 _MODERN_DARK_PRO_CACHED_TF=""
+_MODERN_DARK_PRO_PATH_URL=""
+_MODERN_DARK_PRO_LAST_GIT_PWD=""
+_MODERN_DARK_PRO_CACHED_GIT_REMOTE=""
+
 
 # Updates runtimes versions only if PWD or PATH has changed (highly optimized)
 function _modern_dark_pro_update_runtimes() {
@@ -544,6 +604,15 @@ function _modern_dark_pro_precmd() {
   _modern_dark_pro_update_runtimes
   _MODERN_DARK_PRO_PATH_VAL=$(_modern_dark_pro_path)
   
+  # Generate OSC 8 URL for clickable path if enabled and not SSH session
+  _MODERN_DARK_PRO_PATH_URL=""
+  if [[ "${MODERN_DARK_PRO_CLICKABLE_PATH}" == "true" && -z "${SSH_CONNECTION}" && -z "${SSH_CLIENT}" && -z "${SSH_TTY}" ]]; then
+    local REPLY
+    _modern_dark_pro_urlencode "${PWD}"
+    local escaped_url="${REPLY//\%/%%}"
+    _MODERN_DARK_PRO_PATH_URL="file://${escaped_url}"
+  fi
+  
   # Set up the prompt layout dynamically
   _modern_dark_pro_setup_prompt
 }
@@ -613,6 +682,8 @@ function _modern_dark_pro_first_line() {
   # Strip ANSI color/style escape sequences from expanded left prompt
   setopt local_options extended_glob
   local clean_left="${expanded_left//$'\x1b'\[[0-9;]##[a-zA-Z]/}"
+  # Strip OSC 8 hyperlink sequences from expanded left prompt for correct width calculation
+  clean_left="${clean_left//$'\x1b'\]8;[^$'\x1b']#$'\x1b'\\/}"
   local left_width=${(m)#clean_left}
   
   # Prepare the right-aligned clock block
@@ -649,6 +720,8 @@ function _modern_dark_pro_first_line_two_line() {
   # Strip ANSI color/style escape sequences from expanded left prompt
   setopt local_options extended_glob
   local clean_left="${expanded_left//$'\x1b'\[[0-9;]##[a-zA-Z]/}"
+  # Strip OSC 8 hyperlink sequences from expanded left prompt for correct width calculation
+  clean_left="${clean_left//$'\x1b'\]8;[^$'\x1b']#$'\x1b'\\/}"
   local left_width=${(m)#clean_left}
   
   # Prepare the right-aligned clock block

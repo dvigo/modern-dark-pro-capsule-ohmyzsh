@@ -339,10 +339,10 @@ function _modern_dark_pro_git_branch_capsule() {
   local behind_str=""
   
   if [[ ${_MODERN_DARK_PRO_GIT_AHEAD} -gt 0 ]]; then
-    ahead_str=" ${MODERN_DARK_PRO_AHEAD_SYMBOL}${_MODERN_DARK_PRO_GIT_AHEAD}"
+    ahead_str=" %F{${COLOR_SUCCESS}}${MODERN_DARK_PRO_AHEAD_SYMBOL}${_MODERN_DARK_PRO_GIT_AHEAD}%f"
   fi
   if [[ ${_MODERN_DARK_PRO_GIT_BEHIND} -gt 0 ]]; then
-    behind_str=" ${MODERN_DARK_PRO_BEHIND_SYMBOL}${_MODERN_DARK_PRO_GIT_BEHIND}"
+    behind_str=" %F{${COLOR_ERROR}}${MODERN_DARK_PRO_BEHIND_SYMBOL}${_MODERN_DARK_PRO_GIT_BEHIND}%f"
   fi
   
   local content="${safe_branch}${ahead_str}${behind_str}"

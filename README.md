@@ -44,23 +44,34 @@ Clone this project into a local folder:
 git clone https://github.com/dvigo/modern-dark-pro-capsule-ohmyzsh.git ~/dev/modern-dark-pro-capsule-ohmyzsh
 ```
 
-### Step 2: Run the installer
-Run the provided installer script, which creates a symlink to your Oh My Zsh custom themes folder:
+### Step 2: Run the interactive installer
+Run the provided installer script, which sets up the theme symlink and launches the interactive configuration wizard automatically:
 ```bash
 cd ~/dev/modern-dark-pro-capsule-ohmyzsh
 ./install.sh
 ```
 
-### Step 3: Configure your `~/.zshrc`
-Open your `~/.zshrc` and change the `ZSH_THEME` setting:
+---
+
+## 🧙‍♂️ Interactive Setup Wizard (`wizard.sh`)
+
+The theme includes an interactive terminal setup tool with single-page step transitions and automatic OS language detection.
+
+### Run Wizard Anytime:
 ```bash
-ZSH_THEME="modern-dark-pro-capsule"
+./wizard.sh
 ```
 
-Reload your terminal:
-```bash
-source ~/.zshrc
-```
+### Features:
+- **🌐 5-Language Internationalization**: Auto-detects your system language or accepts explicit language overrides:
+  - English: `./wizard.sh --lang=en`
+  - Spanish: `./wizard.sh --lang=es`
+  - French: `./wizard.sh --lang=fr`
+  - German: `./wizard.sh --lang=de`
+  - Chinese: `./wizard.sh --lang=zh`
+- **📄 Single-Page Screen Transitions**: Clean terminal screen refresh between steps without vertical clutter.
+- **🛡️ Automated Safe Backup**: Automatically creates a timestamped backup of `~/.zshrc` before applying changes.
+- **🔄 One-Click Instant Reload**: Asks to reload your terminal session (`exec zsh` / `source ~/.zshrc`) immediately upon saving.
 
 ---
 

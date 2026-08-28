@@ -276,29 +276,19 @@ case "$LANG_CODE" in
         ;;
 esac
 
-echo -e "${BOLD}${CYAN}"
-echo "----------------------------------------------------------------------"
-echo "  ${T_TITLE}"
-echo "----------------------------------------------------------------------"
-echo -e "${RESET}"
-echo "${T_SUBTITLE}"
-echo -e "${DIM}(Language / Idioma / Langue / Sprache / 语言: ${LANG_CODE})${RESET}"
-echo ""
-
-# Ensure theme file is symlinked to Oh My Zsh custom themes
-if [ -d "$ZSH_CUSTOM" ]; then
-    mkdir -p "$DEST_DIR"
-    if [ ! -e "$DEST_FILE" ]; then
-        echo -e "${DIM}🔗 Creating theme symlink at $DEST_FILE...${RESET}"
-        ln -sf "${SCRIPT_DIR}/${THEME_FILE}" "$DEST_FILE"
-    fi
-fi
-
-# Function to display step header
+# Function to display step header with clear screen
 step_header() {
     local current="$1"
     local total="$2"
     local title="$3"
+    clear
+    echo -e "${BOLD}${CYAN}"
+    echo "----------------------------------------------------------------------"
+    echo "  ${T_TITLE}"
+    echo "----------------------------------------------------------------------"
+    echo -e "${RESET}"
+    echo "${T_SUBTITLE}"
+    echo -e "${DIM}(Language / Idioma / Langue / Sprache / 语言: ${LANG_CODE})${RESET}"
     echo ""
     echo -e "${BOLD}${MAGENTA}[${current}/${total}] ${title}${RESET}"
 }
@@ -390,8 +380,12 @@ case "$choice_links" in
 esac
 
 # --- Summary of Choices ---
-echo ""
-echo -e "${BOLD}${CYAN}----------------------------------------------------------------------${RESET}"
+clear
+echo -e "${BOLD}${CYAN}"
+echo "----------------------------------------------------------------------"
+echo "  ${T_TITLE}"
+echo "----------------------------------------------------------------------"
+echo -e "${RESET}"
 echo -e "${BOLD}📋 ${T_SUMMARY}${RESET}"
 echo -e "  • ZSH_THEME:                      ${GREEN}${THEME_NAME}${RESET}"
 echo -e "  • MODERN_DARK_PRO_VARIANT:        ${YELLOW}${VARIANT}${RESET}"

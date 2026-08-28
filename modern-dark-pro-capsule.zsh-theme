@@ -624,11 +624,15 @@ function _modern_dark_pro_precmd() {
     _MODERN_DARK_PRO_ELAPSED_TIME_VAL=""
   fi
 
-  # Dynamic prompt character coloring based on success/failure
-  if [[ $exit_code -eq 0 ]]; then
-    _MODERN_DARK_PRO_PROMPT_CHAR="%F{${COLOR_SUCCESS}}${MODERN_DARK_PRO_CHAR}%f"
+  # Dynamic prompt character coloring based on success/failure & root privilege check
+  local char="${MODERN_DARK_PRO_CHAR}"
+  if [[ ${EUID:-$(id -u)} -eq 0 ]]; then
+    char="#"
+    _MODERN_DARK_PRO_PROMPT_CHAR="%F{${COLOR_ERROR}}${char}%f"
+  elif [[ $exit_code -eq 0 ]]; then
+    _MODERN_DARK_PRO_PROMPT_CHAR="%F{${COLOR_SUCCESS}}${char}%f"
   else
-    _MODERN_DARK_PRO_PROMPT_CHAR="%F{${COLOR_ERROR}}${MODERN_DARK_PRO_CHAR}%f"
+    _MODERN_DARK_PRO_PROMPT_CHAR="%F{${COLOR_ERROR}}${char}%f"
   fi
 
   # Precompute expensive/dynamic prompt sections

@@ -19,14 +19,14 @@ Designed for developers who appreciate clean typography, high readability, and f
   - Displays branch name in its own capsule.
   - Interactive status badges: Modified, Staged, Untracked, Stashed. Separated with generous spacing for maximum legibility.
   - Sync status with remote: Ahead and Behind indicators.
-- **⏱️ Execution Timer**: Tracks command duration and prints it (e.g., ` 2.5s`) inside a capsule if it takes longer than 2 seconds (configurable).
-- **🕒 System Clock**: Displays the current system time (`HH:MM:SS`) aligned perfectly and out of the way.
+- **⏱️ Execution Timer**: Tracks command duration and prints it (e.g., ` 2.5s` or ` 1m 5.43s` for durations >60s) inside a capsule if it takes longer than 2 seconds (configurable).
+- **🕒 System Clock**: Displays the current system time (`HH:MM:SS`) aligned perfectly to the right edge or via native Zsh `RPROMPT`.
 - **🐍 Python virtualenv / Conda**: Displays active virtual environments with a custom logo (``) in a capsule.
 - **🔒 Read-only Lock**: Displays a lock icon (``) inside the path capsule if you navigate into a folder where you don't have write permissions.
 - **⚙️ Background Jobs**: Displays a gear icon (`⚙`) followed by the count of running background jobs in your session inside a capsule.
 - ** SSH Indicator**: Displays ` username@host` in a capsule if you are logged in over SSH.
 - **🟢 Status Feedback**: The prompt symbol (`❯`) turns green on success and red on failure to indicate the command's exit code.
-- **⚡ Super Lightweight**: Highly optimized Git status parsing and shell hook code to prevent terminal latency.
+- **⚡ Zero Subshell Overhead**: Highly optimized prompt rendering using native Zsh variable scoping and pattern matching to eliminate subshell forks and prevent terminal latency.
 
 ---
 
@@ -197,6 +197,16 @@ export MODERN_DARK_PRO_CLICKABLE_PATH=true
 
 # Toggle making the Git branch clickable (default: true)
 export MODERN_DARK_PRO_CLICKABLE_GIT=true
+```
+
+### 11. Clock Position & Right Alignment
+Choose how the system clock is positioned and right-aligned in your terminal:
+- `'top'` (default): Space-padded right alignment on the status capsule line.
+- `'rprompt'`: Positioned on the prompt line using Zsh's native `RPROMPT`, offering maximum right margin alignment and automatic window resizing.
+
+```bash
+# Choose clock position: 'top' (default) or 'rprompt'
+export MODERN_DARK_PRO_CLOCK_POSITION="top"
 ```
 
 ---

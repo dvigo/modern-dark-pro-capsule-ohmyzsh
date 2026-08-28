@@ -243,6 +243,32 @@ function _modern_dark_pro_update_git() {
   if [[ -z "${ref}" || "${ref}" == "HEAD" ]]; then
     ref=$(git rev-parse --short HEAD 2>/dev/null)
   fi
+
+  # Check active Git operations (Rebase, Merge, Cherry-Pick, Bisect)
+  local git_dir
+  git_dir=$(git rev-parse --git-dir 2>/dev/null)
+  if [[ -n "${git_dir}" ]]; then
+    if [[ -d "${git_dir}/rebase-merge" ]]; then
+      local step="" total=""
+      [[ -f "${git_dir}/rebase-merge/msgnum" ]] && step=$(< "${git_dir}/rebase-merge/msgnum")
+      [[ -f "${git_dir}/rebase-merge/end" ]] && total=$(< "${git_dir}/rebase-merge/end")
+      if [[ -n "${step}" && -n "${total}" ]]; then
+        ref+=" | REBASING ${step}/${total}"
+      else
+        ref+=" | REBASING"
+      fi
+    elif [[ -d "${git_dir}/rebase-apply" ]]; then
+      ref+=" | REBASING"
+    elif [[ -f "${git_dir}/MERGE_HEAD" ]]; then
+      ref+=" | MERGING"
+    elif [[ -f "${git_dir}/CHERRY_PICK_HEAD" ]]; then
+      ref+=" | CHERRY-PICKING"
+    elif [[ -f "${git_dir}/BISECT_LOG" ]]; then
+      ref+=" | BISECTING"
+    elif [[ -f "${git_dir}/REVERT_HEAD" ]]; then
+      ref+=" | REVERTING"
+    fi
+  fi
   _MODERN_DARK_PRO_GIT_BRANCH="${ref}"
 
   # Parse ahead/behind status

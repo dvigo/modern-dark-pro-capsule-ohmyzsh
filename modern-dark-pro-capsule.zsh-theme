@@ -62,6 +62,7 @@ MODERN_DARK_PRO_PILL_STYLE="${MODERN_DARK_PRO_PILL_STYLE:-bracket}" # bracket, r
 MODERN_DARK_PRO_PILL_COLOR_STYLE="${MODERN_DARK_PRO_PILL_COLOR_STYLE:-solid}" # solid or dark (applies to round style)
 MODERN_DARK_PRO_PROMPT_LAYOUT="${MODERN_DARK_PRO_PROMPT_LAYOUT:-two-line}" # single, two-line, or classic
 MODERN_DARK_PRO_SHOW_CLOCK="${MODERN_DARK_PRO_SHOW_CLOCK:-true}"
+MODERN_DARK_PRO_CLOCK_POSITION="${MODERN_DARK_PRO_CLOCK_POSITION:-top}"
 MODERN_DARK_PRO_BORDER_COLOR="${MODERN_DARK_PRO_BORDER_COLOR:-${COLOR_CONNECTOR}}"
 MODERN_DARK_PRO_CLICKABLE_PATH="${MODERN_DARK_PRO_CLICKABLE_PATH:-true}"
 MODERN_DARK_PRO_CLICKABLE_GIT="${MODERN_DARK_PRO_CLICKABLE_GIT:-true}"
@@ -120,7 +121,7 @@ else
   MODERN_DARK_PRO_AWS_SYMBOL="${MODERN_DARK_PRO_AWS_SYMBOL:-aws}"
 fi
 
-# Renders a segment inside a capsule/pill
+# Renders a segment inside a capsule/pill (assigns output to REPLY for zero-subshell speed)
 # Arguments:
 #   $1: Foreground color of the content
 #   $2: Icon/Symbol
@@ -132,6 +133,7 @@ function _modern_dark_pro_make_pill() {
   local content="$3"
   local bg="${4:-}"
   
+  REPLY=""
   if [[ -z "${content}" ]]; then
     return
   fi
@@ -145,7 +147,7 @@ function _modern_dark_pro_make_pill() {
     local final_content="${content}"
     
     if [[ "${color_style}" == "solid" ]]; then
-      # Solid colored pill with dark text (like preview-capsule.png)
+      # Solid colored pill with dark text
       pill_bg="${fg}"
       pill_fg="${MODERN_DARK_PRO_PILL_TEXT_COLOR:-#111111}"
       
@@ -166,7 +168,7 @@ function _modern_dark_pro_make_pill() {
       inner="%F{${pill_fg}}${final_content}%f"
     fi
     
-    echo -n "%F{${pill_bg}}%K{${pill_bg}} ${inner} %k%F{${pill_bg}}%f"
+    REPLY="%F{${pill_bg}}%K{${pill_bg}} ${inner} %k%F{${pill_bg}}%f"
   elif [[ "${style}" == "bracket" ]]; then
     # Bracket outline pill matching screenshot style
     local inner=""
@@ -175,7 +177,7 @@ function _modern_dark_pro_make_pill() {
     else
       inner="%F{${fg}}${content}%f"
     fi
-    echo -n "%F{${MODERN_DARK_PRO_BORDER_COLOR}}[ %f${inner} %F{${MODERN_DARK_PRO_BORDER_COLOR}}]%f"
+    REPLY="%F{${MODERN_DARK_PRO_BORDER_COLOR}}[ %f${inner} %F{${MODERN_DARK_PRO_BORDER_COLOR}}]%f"
   else
     # Simple text (no container)
     local inner=""
@@ -184,7 +186,7 @@ function _modern_dark_pro_make_pill() {
     else
       inner="%F{${fg}}${content}%f"
     fi
-    echo -n " ${inner}"
+    REPLY=" ${inner}"
   fi
 }
 
@@ -272,12 +274,14 @@ function _modern_dark_pro_update_git() {
     fi
   fi
 
-  # Count untracked files
+  # Count untracked files natively in Zsh without process forks
   _MODERN_DARK_PRO_GIT_UNTRACKED=0
-  local untracked_files
-  untracked_files=$(git status --porcelain 2>/dev/null | grep '^??')
-  if [[ -n "${untracked_files}" ]]; then
-    _MODERN_DARK_PRO_GIT_UNTRACKED=$(echo "${untracked_files}" | wc -l | tr -d ' ')
+  local git_status_out
+  git_status_out=$(git status --porcelain 2>/dev/null)
+  if [[ -n "${git_status_out}" ]]; then
+    local -a untracked_lines
+    untracked_lines=( ${(M)${(f)git_status_out}:#\?\?*} )
+    _MODERN_DARK_PRO_GIT_UNTRACKED=${#untracked_lines}
   fi
 }
 
@@ -618,84 +622,69 @@ function _modern_dark_pro_precmd() {
   _modern_dark_pro_setup_prompt
 }
 
-# Renders all active capsules in a space-separated sequence
+# Renders all active capsules in a space-separated sequence (zero subshells via REPLY)
 function _modern_dark_pro_prompt_line() {
   local -a capsules
-  local cap
+  local REPLY
   
-  # SSH capsule first
-  cap=$(_modern_dark_pro_ssh_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  # Path capsule
-  cap=$(_modern_dark_pro_path_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  # Git branch capsule
-  cap=$(_modern_dark_pro_git_branch_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  # Git changes capsule
-  cap=$(_modern_dark_pro_git_changes_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  # Env / runtime capsules
-  cap=$(_modern_dark_pro_venv_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  cap=$(_modern_dark_pro_node_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  cap=$(_modern_dark_pro_go_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  cap=$(_modern_dark_pro_rust_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  cap=$(_modern_dark_pro_tf_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  cap=$(_modern_dark_pro_k8s_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  cap=$(_modern_dark_pro_aws_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  # Jobs capsule
-  cap=$(_modern_dark_pro_jobs_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
-  
-  # Elapsed time capsule
-  cap=$(_modern_dark_pro_elapsed_capsule)
-  [[ -n "${cap}" ]] && capsules+=("${cap}")
+  REPLY=""; _modern_dark_pro_ssh_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_path_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_git_branch_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_git_changes_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_venv_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_node_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_go_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_rust_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_tf_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_k8s_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_aws_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_jobs_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
+  REPLY=""; _modern_dark_pro_elapsed_capsule; [[ -n "${REPLY}" ]] && capsules+=("${REPLY}")
   
   # Join with a single space
   echo -n "${(j: :)capsules}"
 }
 
-# Renders the first line of the prompt for "classic" layout with a dynamic right-aligned clock
-function _modern_dark_pro_first_line() {
-  local left="%F{${COLOR_CONNECTOR}}┌─%f $(_modern_dark_pro_prompt_line)"
+# Helper to compute exact dynamic padding for first line
+function _modern_dark_pro_compute_first_line_padding() {
+  local left="$1"
   
-  # Expand prompt escape sequences to compute visual width
+  if [[ "${MODERN_DARK_PRO_CLOCK_POSITION}" == "rprompt" ]]; then
+    echo -n "${left}"
+    return
+  fi
+
   local expanded_left="${(%%)left}"
   
   # Strip OSC 8 hyperlinks and ANSI color escape sequences for exact visual width calculation
+  local clean_left="${expanded_left}"
+  while [[ "${clean_left}" =~ $'\x1b\\]8;;[^\x1b]*\x1b\\\\' ]]; do
+    clean_left="${clean_left/$MATCH/}"
+  done
   setopt local_options extended_glob
-  local esc=$'\x1b'
-  local clean_left="${expanded_left//${esc}\]8;;[^${esc}]#${esc}\\/}"
-  clean_left="${clean_left//${esc}\]8;;${esc}\\/}"
-  clean_left="${clean_left//${esc}\[[0-9;]##[a-zA-Z]/}"
+  clean_left="${clean_left//$'\x1b'\[[0-9;]##[a-zA-Z]/}"
   local left_width=${(m)#clean_left}
   
   # Prepare the right-aligned clock block
   local right="%F{${COLOR_CONNECTOR}}${MODERN_DARK_PRO_TIME_SYMBOL} %D{%H:%M:%S}%f"
   local expanded_right="${(%%)right}"
-  local clean_right="${expanded_right//${esc}\[[0-9;]##[a-zA-Z]/}"
+  local clean_right="${expanded_right//$'\x1b'\[[0-9;]##[a-zA-Z]/}"
   local right_width=${(m)#clean_right}
   
+  # Determine dynamic terminal column width (fallback to stty / tput if COLUMNS is stale)
+  local cols="${COLUMNS:-0}"
+  local tty_cols=$(stty size 2>/dev/null | awk '{print $2}')
+  if [[ -n "${tty_cols}" && "${tty_cols}" -gt "${cols}" ]]; then
+    cols="${tty_cols}"
+  fi
+  local tput_c=$(tput cols 2>/dev/null)
+  if [[ -n "${tput_c}" && "${tput_c}" -gt "${cols}" ]]; then
+    cols="${tput_c}"
+  fi
+  [[ "${cols}" -le 0 ]] && cols=80
+
   # Calculate required padding width (subtracting left/right width from terminal columns)
-  local pad_width=$(( COLUMNS - left_width - right_width ))
+  local pad_width=$(( cols - left_width - right_width ))
   local padding=" "
   if (( pad_width > 1 )); then
     padding=""
@@ -705,6 +694,12 @@ function _modern_dark_pro_first_line() {
   fi
   
   echo -n "${left}${padding}${right}"
+}
+
+# Renders the first line of the prompt for "classic" layout with a dynamic right-aligned clock
+function _modern_dark_pro_first_line() {
+  local left="%F{${COLOR_CONNECTOR}}┌─%f $(_modern_dark_pro_prompt_line)"
+  _modern_dark_pro_compute_first_line_padding "${left}"
 }
 
 # Renders the first line for "two-line" layout, dynamically right-aligning the clock if enabled
@@ -716,34 +711,7 @@ function _modern_dark_pro_first_line_two_line() {
     return
   fi
   
-  # Expand prompt escape sequences to compute visual width
-  local expanded_left="${(%%)left}"
-  
-  # Strip OSC 8 hyperlinks and ANSI color escape sequences for exact visual width calculation
-  setopt local_options extended_glob
-  local esc=$'\x1b'
-  local clean_left="${expanded_left//${esc}\]8;;[^${esc}]#${esc}\\/}"
-  clean_left="${clean_left//${esc}\]8;;${esc}\\/}"
-  clean_left="${clean_left//${esc}\[[0-9;]##[a-zA-Z]/}"
-  local left_width=${(m)#clean_left}
-  
-  # Prepare the right-aligned clock block
-  local right="%F{${COLOR_CONNECTOR}}${MODERN_DARK_PRO_TIME_SYMBOL} %D{%H:%M:%S}%f"
-  local expanded_right="${(%%)right}"
-  local clean_right="${expanded_right//$'\x1b'\[[0-9;]##[a-zA-Z]/}"
-  local right_width=${(m)#clean_right}
-  
-  # Calculate required padding width (subtracting left/right width from terminal columns)
-  local pad_width=$(( COLUMNS - left_width - right_width ))
-  local padding=" "
-  if (( pad_width > 1 )); then
-    padding=""
-    for ((i=1; i<=pad_width; i++)); do
-      padding+=" "
-    done
-  fi
-  
-  echo -n "${left}${padding}${right}"
+  _modern_dark_pro_compute_first_line_padding "${left}"
 }
 
 # Sets up prompt and right prompt based on layout configuration
@@ -753,11 +721,19 @@ function _modern_dark_pro_setup_prompt() {
   if [[ "${layout}" == "classic" ]]; then
     PROMPT='$(_modern_dark_pro_first_line)
 %F{${COLOR_CONNECTOR}}└─%f ${_MODERN_DARK_PRO_PROMPT_CHAR} '
-    RPROMPT=''
+    if [[ "${MODERN_DARK_PRO_CLOCK_POSITION}" == "rprompt" ]]; then
+      RPROMPT='%F{${COLOR_CONNECTOR}}${MODERN_DARK_PRO_TIME_SYMBOL} %D{%H:%M:%S}%f'
+    else
+      RPROMPT=''
+    fi
   elif [[ "${layout}" == "two-line" ]]; then
     PROMPT='$(_modern_dark_pro_first_line_two_line)
 ${_MODERN_DARK_PRO_PROMPT_CHAR} '
-    RPROMPT=''
+    if [[ "${MODERN_DARK_PRO_CLOCK_POSITION}" == "rprompt" ]]; then
+      RPROMPT='%F{${COLOR_CONNECTOR}}${MODERN_DARK_PRO_TIME_SYMBOL} %D{%H:%M:%S}%f'
+    else
+      RPROMPT=''
+    fi
   else # single line layout
     PROMPT='$(_modern_dark_pro_prompt_line) ${_MODERN_DARK_PRO_PROMPT_CHAR} '
     if [[ "${MODERN_DARK_PRO_SHOW_CLOCK}" == "true" ]]; then

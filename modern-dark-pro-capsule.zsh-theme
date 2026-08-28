@@ -308,6 +308,7 @@ function _modern_dark_pro_git_branch_capsule() {
   fi
 
   local branch_info="${_MODERN_DARK_PRO_GIT_BRANCH}"
+  local safe_branch="${branch_info//\%/%%}"
   local ahead_str=""
   local behind_str=""
   
@@ -318,7 +319,7 @@ function _modern_dark_pro_git_branch_capsule() {
     behind_str=" ${MODERN_DARK_PRO_BEHIND_SYMBOL}${_MODERN_DARK_PRO_GIT_BEHIND}"
   fi
   
-  local content="${branch_info}${ahead_str}${behind_str}"
+  local content="${safe_branch}${ahead_str}${behind_str}"
   
   local git_url=""
   if [[ "${MODERN_DARK_PRO_CLICKABLE_GIT}" == "true" && -n "${_MODERN_DARK_PRO_CACHED_GIT_REMOTE}" && -z "${SSH_CONNECTION}" && -z "${SSH_CLIENT}" && -z "${SSH_TTY}" ]]; then

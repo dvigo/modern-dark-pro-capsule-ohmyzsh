@@ -679,17 +679,18 @@ function _modern_dark_pro_first_line() {
   # Expand prompt escape sequences to compute visual width
   local expanded_left="${(%%)left}"
   
-  # Strip ANSI color/style escape sequences from expanded left prompt
+  # Strip OSC 8 hyperlinks and ANSI color escape sequences for exact visual width calculation
   setopt local_options extended_glob
-  local clean_left="${expanded_left//$'\x1b'\[[0-9;]##[a-zA-Z]/}"
-  # Strip OSC 8 hyperlink sequences from expanded left prompt for correct width calculation
-  clean_left="${clean_left//$'\x1b'\]8;[^$'\x1b']#$'\x1b'\\/}"
+  local esc=$'\x1b'
+  local clean_left="${expanded_left//${esc}\]8;;[^${esc}]#${esc}\\/}"
+  clean_left="${clean_left//${esc}\]8;;${esc}\\/}"
+  clean_left="${clean_left//${esc}\[[0-9;]##[a-zA-Z]/}"
   local left_width=${(m)#clean_left}
   
   # Prepare the right-aligned clock block
   local right="%F{${COLOR_CONNECTOR}}${MODERN_DARK_PRO_TIME_SYMBOL} %D{%H:%M:%S}%f"
   local expanded_right="${(%%)right}"
-  local clean_right="${expanded_right//$'\x1b'\[[0-9;]##[a-zA-Z]/}"
+  local clean_right="${expanded_right//${esc}\[[0-9;]##[a-zA-Z]/}"
   local right_width=${(m)#clean_right}
   
   # Calculate required padding width (subtracting left/right width from terminal columns)
@@ -717,11 +718,12 @@ function _modern_dark_pro_first_line_two_line() {
   # Expand prompt escape sequences to compute visual width
   local expanded_left="${(%%)left}"
   
-  # Strip ANSI color/style escape sequences from expanded left prompt
+  # Strip OSC 8 hyperlinks and ANSI color escape sequences for exact visual width calculation
   setopt local_options extended_glob
-  local clean_left="${expanded_left//$'\x1b'\[[0-9;]##[a-zA-Z]/}"
-  # Strip OSC 8 hyperlink sequences from expanded left prompt for correct width calculation
-  clean_left="${clean_left//$'\x1b'\]8;[^$'\x1b']#$'\x1b'\\/}"
+  local esc=$'\x1b'
+  local clean_left="${expanded_left//${esc}\]8;;[^${esc}]#${esc}\\/}"
+  clean_left="${clean_left//${esc}\]8;;${esc}\\/}"
+  clean_left="${clean_left//${esc}\[[0-9;]##[a-zA-Z]/}"
   local left_width=${(m)#clean_left}
   
   # Prepare the right-aligned clock block

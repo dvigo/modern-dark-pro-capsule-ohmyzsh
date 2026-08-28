@@ -26,6 +26,15 @@ ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 DEST_DIR="${ZSH_CUSTOM}/themes"
 DEST_FILE="${DEST_DIR}/${THEME_FILE}"
 
+# Temp file registry for safe EXIT/INT signal cleanup
+TMP_FILES=()
+cleanup_tmp() {
+    for f in "${TMP_FILES[@]}"; do
+        [ -f "$f" ] && rm -f "$f" 2>/dev/null
+    done
+}
+trap cleanup_tmp EXIT INT TERM
+
 # Language Auto-Detection
 DETECTED_LANG="${LANG:-${LC_ALL:-${LC_MESSAGES:-en}}}"
 if [[ "$DETECTED_LANG" == "C"* || "$DETECTED_LANG" == "POSIX"* || -z "$DETECTED_LANG" ]]; then
@@ -414,6 +423,7 @@ echo -e "${DIM}💾 Backup created at ${ZSHRC}.bak...${RESET}"
 
 # Write config block into a temp file
 cfg_file=$(mktemp)
+TMP_FILES+=("$cfg_file")
 cat << CONFIG_EOF > "$cfg_file"
 # Modern Dark Pro Capsule Theme Config
 ZSH_THEME="${THEME_NAME}"
@@ -431,9 +441,11 @@ CONFIG_EOF
 
 # Filter existing theme lines from ~/.zshrc into temp file
 cleaned_zshrc=$(mktemp)
+TMP_FILES+=("$cleaned_zshrc")
 grep -v "^ZSH_THEME=" "$ZSHRC" | grep -v "^export MODERN_DARK_PRO_" | grep -v "^# Modern Dark Pro" "$ZSHRC" > "$cleaned_zshrc" || true
 
 tmp_file=$(mktemp)
+TMP_FILES+=("$tmp_file")
 
 # Insert cfg_file before "source $ZSH/oh-my-zsh.sh"
 if grep -q "source \$ZSH/oh-my-zsh.sh" "$cleaned_zshrc"; then

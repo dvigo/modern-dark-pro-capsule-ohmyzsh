@@ -389,7 +389,7 @@ case "$choice_links" in
 esac
 
 # --- Summary of Choices ---
-clear
+clear 2>/dev/null || true
 echo -e "${BOLD}${CYAN}"
 echo "----------------------------------------------------------------------"
 echo "  ${T_TITLE}"

@@ -51,6 +51,19 @@ else
   fi
 fi
 
+# Custom variant: per-item 0-255 overrides from MODERN_DARK_PRO_COLOR_<ITEM>.
+# Missing or invalid values keep the night defaults set above.
+if [[ "${MODERN_DARK_PRO_VARIANT}" == "custom" ]]; then
+  for _mdp_item in CONNECTOR PATH GIT_BRANCH SUCCESS WARNING ERROR EXEC_TIME TEXT; do
+    _mdp_var="MODERN_DARK_PRO_COLOR_${_mdp_item}"
+    _mdp_val="${(P)_mdp_var}"
+    if [[ "${_mdp_val}" == <0-255> ]]; then
+      typeset -g "COLOR_${_mdp_item}=${_mdp_val}"
+    fi
+  done
+  unset _mdp_item _mdp_var _mdp_val
+fi
+
 # Configuration Variables with defaults
 MODERN_DARK_PRO_CHAR="${MODERN_DARK_PRO_CHAR:-❯}"
 MODERN_DARK_PRO_SHOW_EXEC_TIME="${MODERN_DARK_PRO_SHOW_EXEC_TIME:-true}"
@@ -127,6 +140,33 @@ fi
 #   $2: Icon/Symbol
 #   $3: Text content
 #   $4: Optional background color (for solid style)
+# Text color for a solid capsule whose background is <fg>. Sets REPLY.
+# Numeric xterm codes get light text on dark backgrounds and near-black text on bright ones
+# (integer luma < 120). Hex backgrounds and a user-set MODERN_DARK_PRO_PILL_TEXT_COLOR keep the
+# fixed default. Codes 0-15 assume the standard xterm palette (terminal themes may differ).
+typeset -ga _MODERN_DARK_PRO_XTERM_R=(0 205 0 205 0 205 0 229 127 255 0 255 92 255 0 255)
+typeset -ga _MODERN_DARK_PRO_XTERM_G=(0 0 205 205 0 0 205 229 127 0 255 255 92 0 255 255)
+typeset -ga _MODERN_DARK_PRO_XTERM_B=(0 0 0 0 238 205 205 229 127 0 0 0 255 255 255 255)
+function _modern_dark_pro_text_on() {
+  REPLY="${MODERN_DARK_PRO_PILL_TEXT_COLOR:-#111111}"
+  if [[ -n "${MODERN_DARK_PRO_PILL_TEXT_COLOR}" || "$1" != <0-255> ]]; then
+    return
+  fi
+  local -i n=$(( 10#$1 )) r g b i
+  if (( n < 16 )); then
+    r=${_MODERN_DARK_PRO_XTERM_R[n+1]}; g=${_MODERN_DARK_PRO_XTERM_G[n+1]}; b=${_MODERN_DARK_PRO_XTERM_B[n+1]}
+  elif (( n < 232 )); then
+    i=$(( n - 16 ))
+    r=$(( i / 36 )); g=$(( (i / 6) % 6 )); b=$(( i % 6 ))
+    (( r )) && r=$(( 55 + 40 * r )); (( g )) && g=$(( 55 + 40 * g )); (( b )) && b=$(( 55 + 40 * b ))
+  else
+    r=$(( 8 + 10 * (n - 232) )); g=$r; b=$r
+  fi
+  if (( (299 * r + 587 * g + 114 * b) / 1000 < 120 )); then
+    REPLY="#f8f8f2"
+  fi
+}
+
 function _modern_dark_pro_make_pill() {
   local fg="$1"
   local symbol="$2"
@@ -149,7 +189,8 @@ function _modern_dark_pro_make_pill() {
     if [[ "${color_style}" == "solid" ]]; then
       # Solid colored pill with dark text
       pill_bg="${fg}"
-      pill_fg="${MODERN_DARK_PRO_PILL_TEXT_COLOR:-#111111}"
+      _modern_dark_pro_text_on "${fg}"
+      pill_fg="${REPLY}"
       
       # Strip embedded colors so text is uniformly dark and readable
       setopt local_options extendedglob

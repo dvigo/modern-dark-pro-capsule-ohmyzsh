@@ -61,7 +61,7 @@ cd ~/dev/modern-dark-pro-capsule-ohmyzsh
 
 ## 🧙‍♂️ Interactive Setup Wizard (`wizard.sh`)
 
-The theme includes an interactive terminal setup tool with single-page step transitions and automatic OS language detection.
+The theme includes an interactive terminal setup tool: one full-screen menu with a live preview of your prompt, where you can jump to any setting in any order. It starts from your current `~/.zshrc` settings and detects your OS language automatically.
 
 ### Run Wizard Anytime:
 ```bash
@@ -75,9 +75,37 @@ The theme includes an interactive terminal setup tool with single-page step tran
   - French: `./wizard.sh --lang=fr`
   - German: `./wizard.sh --lang=de`
   - Chinese: `./wizard.sh --lang=zh`
-- **📄 Single-Page Screen Transitions**: Clean terminal screen refresh between steps without vertical clutter.
+- **📄 Single-Screen Menu**: Runs in the terminal's alternate screen, so it starts clean and your previous terminal content comes back on exit. Nothing to restart to change an earlier choice.
 - **🛡️ Automated Safe Backup**: Automatically creates a timestamped backup of `~/.zshrc` before applying changes.
 - **🔄 One-Click Instant Reload**: Asks to reload your terminal session (`exec zsh` / `source ~/.zshrc`) immediately upon saving.
+- **👁️ Live Preview**: A mock of your prompt stays at the top and updates with every change, so cycling *Color scheme* with ←/→ shows each palette.
+
+### Keys
+
+| Key | Action |
+|-----|--------|
+| ↑ / ↓ | Move between settings |
+| ← / → or Enter | Change the selected value |
+| Enter on *Edit colors* | Open the custom color editor |
+| `s` | Save (shows a summary, asks before writing `~/.zshrc`, offers to reload) |
+| `q` / Esc | Quit (asks to discard if you changed something) |
+| Ctrl-C | Quit immediately |
+
+### Custom colors
+
+Pick **custom** as the color scheme, or press Enter on **Edit colors**, to choose each color yourself. The editor starts from the palette you were on (Night or Monokai), and the preview updates on every keypress.
+
+| Key | Action |
+|-----|--------|
+| ↑ / ↓ | Select item (connector, path, git branch, success, warning, error, exec time, text) |
+| ← / → | Cycle the 16 ANSI colors |
+| `a` | Type a 256-color code (0-255) |
+| `r` / `c` | Reset item / reset all (to Night) |
+| Enter | Done |
+
+The wizard writes `MODERN_DARK_PRO_VARIANT="custom"` and one `MODERN_DARK_PRO_COLOR_<ITEM>="<0-255>"` per item. You can also set them by hand in `~/.zshrc`; invalid values fall back to the Night color.
+
+Run `bash tests/check-colors.sh` to verify the wizard and theme stay in sync.
 
 ---
 
